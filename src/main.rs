@@ -1,16 +1,26 @@
-use std::fmt;
+use std::time::{Duration, SystemTime};
 
 fn main() {
+
+    let sys_time=SystemTime::now();
     let res = find_options(&vec![1,1,1,1]);
-    println!("{:?}",res.len());
+    println!("{}",res.len());
+    println!("{:?}",sys_time.elapsed());
     
 }
 
-const BLACK: &str = "x";
-const WHITE: &str = " ";
-const UNKNOWN: &str = "?";
+const SIZE: usize = 100;
 
-const SIZE: usize = 80;
+const WHITE:char=' ';
+const BLACK:char='x';
+const UNKNOWN:char='?';
+
+
+
+type Tile=char;
+
+
+type Line=[Tile;SIZE];
 
 type Header = Vec<usize>;
 
@@ -22,58 +32,6 @@ struct Board {
     col_nums: SideHeader,
 }
 
-// impl Default for Board {
-//     fn default() -> Self {
-//         Self {
-//             row_nums: [
-//                 vec![7, 2, 2, 7],
-//                 vec![1, 1, 1, 2, 1, 1],
-//                 vec![1, 3, 1, 3, 1, 1, 3, 1],
-//                 vec![1, 3, 1, 2, 1, 1, 3, 1],
-//                 vec![1, 3, 1, 2, 1, 3, 1],
-//                 vec![1, 1, 2, 2, 1, 1],
-//                 vec![7, 1, 1, 1, 7],
-//                 vec![2],
-//                 vec![2, 3, 2, 1, 4],
-//                 vec![1, 1, 3, 3, 2, 1],
-//                 vec![3, 1, 3, 2, 2],
-//                 vec![1, 1, 1, 3, 1, 1],
-//                 vec![1, 5, 1, 1, 1, 1],
-//                 vec![1, 1, 1, 1, 3, 1],
-//                 vec![7, 1, 1],
-//                 vec![1, 1, 1, 1, 1, 1, 1, 1],
-//                 vec![1, 3, 1, 1, 1, 2, 2],
-//                 vec![1, 3, 1, 2, 1, 2, 1, 1],
-//                 vec![1, 3, 1, 1, 1, 2],
-//                 vec![1, 1, 2, 1, 1],
-//                 vec![7, 1, 3, 1],
-//             ],
-//             col_nums: [
-//                 vec![7, 1, 2, 7],
-//                 vec![1, 1, 1, 1, 1, 1],
-//                 vec![1, 3, 1, 1, 1, 3, 1],
-//                 vec![1, 3, 1, 1, 1, 1, 3, 1],
-//                 vec![1, 3, 1, 1, 1, 1, 3, 1],
-//                 vec![1, 1, 2, 1, 1],
-//                 vec![7, 1, 1, 1, 7],
-//                 vec![4],
-//                 vec![4, 2, 2, 2, 2, 2],
-//                 vec![1, 2, 1, 1, 1, 2, 3],
-//                 vec![1, 2, 2, 2],
-//                 vec![2, 3, 1, 1, 1, 1, 1],
-//                 vec![3, 3, 2, 3, 1, 1],
-//                 vec![1, 1, 3, 2],
-//                 vec![7, 1, 1],
-//                 vec![1, 1, 1, 1, 1, 1, 1],
-//                 vec![1, 3, 1, 3, 2, 3],
-//                 vec![1, 3, 1, 2, 2, 1, 1],
-//                 vec![1, 3, 1, 1, 1, 1, 1],
-//                 vec![1, 1, 5, 3],
-//                 vec![7, 1, 1, 2, 1],
-//             ],
-//         }
-//     }
-// }
 
 fn min_size(header: &Header) -> usize {
     if header.len() > 0 {
@@ -87,29 +45,31 @@ fn min_size(header: &Header) -> usize {
     }
 }
 
-fn find_options(header: &Header) ->Vec<String>{
-    let mut x :Vec<String> = Vec::<String>::new();
-    rec_find_options(header, String::from(""), &mut x);
-    x
+fn find_options(header: &Header) ->Vec<Line>{
+    let mut res = Vec::<Line>::new();
+    rec_find_options(header, [WHITE;SIZE], 0,&mut res);
+    res
 }
 
-fn rec_find_options(header: &Header, so_far: String, result: &mut Vec<String>) {
-    if header.len() == 0 {
-        let len =so_far.len();
-        let s = [so_far,WHITE.repeat(SIZE-len)].join("");
-        result.push(s)
-    } else {
+fn rec_find_options(header: &Header, line: Line, filled:usize, result: &mut Vec<Line>) {
+    if header.len()>0{
         let mut remaining = header.to_vec();
         remaining.remove(0);
-        let max_possible = SIZE - min_size(&remaining) - so_far.len();
-        let mut range = max_possible - header[0];
-        if remaining.len()==0{
-            range = range+1;
+        let available = SIZE-filled-min_size(&remaining);
+        let space = if remaining.len()==0 {header[0]} else {header[0]+1};
+        let range = available-space;
+        for i in filled..filled+range+1{
+            let mut copy = line;
+            for j in filled..i{
+                copy[j]=WHITE;
+            }
+            for j in i..i+header[0]{
+                copy[j]=BLACK;
+            }
+            rec_find_options(&remaining, copy, i+space,result);
         }
-        for i in 0..range{
-            let end:String= if remaining.len()==0 {String::from("")} else {String::from(" ")};
-            let string = [so_far.to_owned(),WHITE.repeat(i),BLACK.repeat(header[0]),end].join("");
-            rec_find_options(&remaining, string, result);
-        }
+    }
+    else{
+        result.push(line);
     }
 }
