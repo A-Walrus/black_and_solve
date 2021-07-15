@@ -4,10 +4,7 @@ fn main() {
 
     let start = SystemTime::now();
     let b = Board::default();
-    for i in 0..100{
-        b.solve();
-
-    }
+    b.solve();
     println!("{:?}",start.elapsed());
 }
 
@@ -31,7 +28,6 @@ impl fmt::Debug for Tile {
     }
 }
 
-
 impl ops::Add<Tile> for &Tile{
     type Output=Tile;
     fn add(self,rhs:Tile)->Tile{
@@ -48,13 +44,15 @@ type Header = Vec<usize>;
 
 type SideHeader = [Header; SIZE];
 
+type Options = Vec<Line>;
+
 #[derive(Debug)]
 struct Board {
     row_nums: SideHeader,
     col_nums: SideHeader,
 }
 
-type Options = Vec<Line>;
+
 
 
 impl Board{
@@ -83,22 +81,12 @@ impl Board{
 fn filter(from:&mut Options,to:&mut Vec<Options>){
     for (r,row) in from.iter().enumerate(){
         for (t,tile) in row.iter().enumerate(){
-            let mut to_delete :Vec<usize> =Vec::new(); 
             match tile{
                 Tile::Unknown=>(),
                 _=>{
-                    for (o,option_col) in to[t].iter().enumerate(){
-                        if option_col[r]!=*tile{
-                            to_delete.push(o)
-                        }
-                    }
+                    to[t] = to[t].drain(..).filter(|option_col|option_col[r]==*tile).collect();
                 }
             };
-            to_delete.sort();
-            for del in to_delete.iter().rev(){
-                to[t].remove(*del);
-            }
-            
         }
     }
 }
@@ -115,8 +103,6 @@ fn done(lines:&Options)->bool{
     }
     true
 }
-
-
 
 fn min_size(header: &Header) -> usize {
     if header.len() > 0 {
