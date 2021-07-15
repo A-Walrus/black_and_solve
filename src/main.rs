@@ -1,15 +1,15 @@
-use std::{time::{SystemTime},ops,fmt};
+use std::{time::{SystemTime},ops,fmt,fs};
+use serde::{Serialize, Deserialize};
+use serde_json;
 
 fn main() {
     let start = SystemTime::now();
     let b = Board::default();
-    for i in 0..100{
-        b.solve();
-    }
+    b.solve();
     println!("{:?}",start.elapsed());
 }
 
-const SIZE: usize = 21;
+const SIZE: usize = 20;
 
 #[derive(Clone, Copy,Eq,PartialEq)]
 enum Tile {
@@ -48,15 +48,16 @@ type SideHeader = [Header; SIZE];
 type Options = Vec<Line>;
 
 #[derive(Debug)]
+#[derive(Serialize, Deserialize)]
 struct Board {
-    row_nums: SideHeader,
-    col_nums: SideHeader,
+    row: SideHeader,
+    column: SideHeader,
 }
 
 impl Board{
     fn solve(&self){
-        let mut row_options : Vec<Options> = self.row_nums.iter().map(find_options).collect();
-        let mut col_options : Vec<Options> = self.col_nums.iter().map(find_options).collect();
+        let mut row_options : Vec<Options> = self.row.iter().map(find_options).collect();
+        let mut col_options : Vec<Options> = self.column.iter().map(find_options).collect();
         let mut row_summaries : Options = row_options.iter().map(|x|summarize(&x)).collect();
         let mut col_summaries : Options = col_options.iter().map(|x|summarize(&x)).collect();
         
@@ -67,14 +68,14 @@ impl Board{
             col_summaries = col_options.iter().map(|x|summarize(&x)).collect();
         }
 
-        // for row in row_summaries.iter(){
-        //     for square in row{
-        //         print!("{:?} ",square);
-        //     }
-        //     println!();
+        for row in row_summaries.iter(){
+            for square in row{
+                print!("{:?} ",square);
+            }
+            println!();
             
-        // }
-        // println!();
+        }
+        println!();
 
     }
 }
@@ -159,55 +160,10 @@ fn summarize(options:&Options)->Line{
 }
 
 
+
 impl Default for Board {
     fn default() -> Self {
-        Self {
-            row_nums: [
-                vec![7, 2, 2, 7],
-                vec![1, 1, 1, 2, 1, 1],
-                vec![1, 3, 1, 3, 1, 1, 3, 1],
-                vec![1, 3, 1, 2, 1, 1, 3, 1],
-                vec![1, 3, 1, 2, 1, 3, 1],
-                vec![1, 1, 2, 2, 1, 1],
-                vec![7, 1, 1, 1, 7],
-                vec![2],
-                vec![2, 3, 2, 1, 4],
-                vec![1, 1, 3, 3, 2, 1],
-                vec![3, 1, 3, 2, 2],
-                vec![1, 1, 1, 3, 1, 1],
-                vec![1, 5, 1, 1, 1, 1],
-                vec![1, 1, 1, 1, 3, 1],
-                vec![7, 1, 1],
-                vec![1, 1, 1, 1, 1, 1, 1, 1],
-                vec![1, 3, 1, 1, 1, 2, 2],
-                vec![1, 3, 1, 2, 1, 2, 1, 1],
-                vec![1, 3, 1, 1, 1, 2],
-                vec![1, 1, 2, 1, 1],
-                vec![7, 1, 3, 1],
-            ],
-            col_nums: [
-                vec![7, 1, 2, 7],
-                vec![1, 1, 1, 1, 1, 1],
-                vec![1, 3, 1, 1, 1, 3, 1],
-                vec![1, 3, 1, 1, 1, 1, 3, 1],
-                vec![1, 3, 1, 1, 1, 1, 3, 1],
-                vec![1, 1, 2, 1, 1],
-                vec![7, 1, 1, 1, 7],
-                vec![4],
-                vec![4, 2, 2, 2, 2, 2],
-                vec![1, 2, 1, 1, 1, 2, 3],
-                vec![1, 2, 2, 2],
-                vec![2, 3, 1, 1, 1, 1, 1],
-                vec![3, 3, 2, 3, 1, 1],
-                vec![1, 1, 3, 2],
-                vec![7, 1, 1],
-                vec![1, 1, 1, 1, 1, 1, 1],
-                vec![1, 3, 1, 3, 2, 3],
-                vec![1, 3, 1, 2, 2, 1, 1],
-                vec![1, 3, 1, 1, 1, 1, 1],
-                vec![1, 1, 5, 3],
-                vec![7, 1, 1, 2, 1],
-            ],
-        }
+        let data = fs::read_to_string(r"D:\Users\Guy\rust\Projects\black_and_solve\puzzles\nonogram-hints (4).json").expect("Unable to read file");
+        serde_json::from_str(&data).expect("bad json")
     }
 }
