@@ -1,10 +1,11 @@
 use std::{time::{SystemTime},ops,fmt};
 
 fn main() {
-
     let start = SystemTime::now();
     let b = Board::default();
-    b.solve();
+    for i in 0..100{
+        b.solve();
+    }
     println!("{:?}",start.elapsed());
 }
 
@@ -52,15 +53,12 @@ struct Board {
     col_nums: SideHeader,
 }
 
-
-
-
 impl Board{
     fn solve(&self){
-        let mut row_options :Vec<Options>= self.row_nums.iter().map(find_options).collect();
-        let mut col_options :Vec<Options>= self.col_nums.iter().map(find_options).collect();
-        let mut row_summaries :Options = row_options.iter().map(|x|summarize(&x)).collect();
-        let mut col_summaries :Options = col_options.iter().map(|x|summarize(&x)).collect();
+        let mut row_options : Vec<Options> = self.row_nums.iter().map(find_options).collect();
+        let mut col_options : Vec<Options> = self.col_nums.iter().map(find_options).collect();
+        let mut row_summaries : Options = row_options.iter().map(|x|summarize(&x)).collect();
+        let mut col_summaries : Options = col_options.iter().map(|x|summarize(&x)).collect();
         
         while !done(&row_summaries) {
             filter(&mut row_summaries,&mut col_options);
@@ -69,9 +67,12 @@ impl Board{
             col_summaries = col_options.iter().map(|x|summarize(&x)).collect();
         }
 
-
         // for row in row_summaries.iter(){
-        //     println!("{:?}",row);
+        //     for square in row{
+        //         print!("{:?} ",square);
+        //     }
+        //     println!();
+            
         // }
         // println!();
 
@@ -90,7 +91,6 @@ fn filter(from:&mut Options,to:&mut Vec<Options>){
         }
     }
 }
-
 
 fn done(lines:&Options)->bool{
     for line in lines.iter(){
