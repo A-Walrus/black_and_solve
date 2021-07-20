@@ -1,3 +1,5 @@
+#![feature(array_map)]
+#![feature(array_methods)]
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::{fmt, fs, ops, time::SystemTime};
@@ -63,16 +65,16 @@ struct Board {
 
 impl Board {
 	fn solve(&self) {
-		let mut row_options: Vec<Options> = self.row.iter().map(find_options).collect();
-		let mut col_options: Vec<Options> = self.column.iter().map(find_options).collect();
-		let mut row_summaries: Vec<Line> = row_options.iter().map(|x| summarize(&x)).collect();
-		let mut col_summaries: Vec<Line> = col_options.iter().map(|x| summarize(&x)).collect();
+		let mut row_options = self.row.each_ref().map(find_options);
+		let mut col_options = self.column.each_ref().map(find_options);
+		let mut row_summaries = row_options.each_ref().map(summarize);
+		let mut col_summaries = col_options.each_ref().map(summarize);
 
 		while !done(&row_summaries) {
 			filter(&row_summaries, &mut col_options);
 			filter(&col_summaries, &mut row_options);
-			row_summaries = row_options.iter().map(|x| summarize(&x)).collect();
-			col_summaries = col_options.iter().map(|x| summarize(&x)).collect();
+			row_summaries = row_options.each_ref().map(summarize);
+			col_summaries = col_options.each_ref().map(summarize);
 		}
 
 		// for row in row_summaries.iter() {
@@ -85,7 +87,7 @@ impl Board {
 	}
 }
 
-fn filter(from: &Vec<Line>, to: &mut Vec<Options>) {
+fn filter(from: &[Line; SIZE], to: &mut [Options; SIZE]) {
 	for (l, line) in from.iter().enumerate() {
 		for (t, tile) in line.iter().enumerate() {
 			match tile {
@@ -98,7 +100,7 @@ fn filter(from: &Vec<Line>, to: &mut Vec<Options>) {
 	}
 }
 
-fn done(lines: &Vec<Line>) -> bool {
+fn done(lines: &[Line; SIZE]) -> bool {
 	for line in lines.iter() {
 		for square in line.iter() {
 			match square {
