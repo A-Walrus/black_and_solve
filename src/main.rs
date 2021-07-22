@@ -5,13 +5,13 @@ use std::{fmt, fs, ops, time::SystemTime};
 fn main() {
 	let b = Board::default();
 	let start = SystemTime::now();
-	for _ in 0..1000 {
+	for _ in 0..10 {
 		b.solve();
 	}
 	println!("{:?}", start.elapsed());
 }
 
-const SIZE: usize = 20;
+const SIZE: usize = 50;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum Tile {
@@ -55,7 +55,7 @@ type SideHeader = [Header; SIZE];
 
 type Options = Vec<Line>;
 
-#[derive(Debug, Serialize, Deserialize)]
+// #[derive(Debug, Serialize, Deserialize)]
 struct Board {
 	row: SideHeader,
 	column: SideHeader,
@@ -67,7 +67,6 @@ impl Board {
 		let mut col_options: Vec<Options> = self.column.iter().map(find_options).collect();
 		let mut row_summaries: Vec<Line> = row_options.iter().map(|x| summarize(&x)).collect();
 		let mut col_summaries: Vec<Line> = col_options.iter().map(|x| summarize(&x)).collect();
-
 		while !done(&row_summaries) {
 			filter(&row_summaries, &mut col_options);
 			filter(&col_summaries, &mut row_options);
@@ -144,6 +143,9 @@ fn rec_find_options(header: &[usize], line: Line, filled: usize, result: &mut Op
 }
 
 fn summarize(options: &Options) -> Line {
+	if options.len() == 0 {
+		println!("wtf");
+	}
 	let mut res = options[0];
 	for line in options.iter() {
 		for (i, tile) in line.iter().enumerate() {
@@ -155,8 +157,115 @@ fn summarize(options: &Options) -> Line {
 
 impl Default for Board {
 	fn default() -> Self {
-		let data = fs::read_to_string(r"D:\Users\Guy\rust\Projects\black_and_solve\puzzles\nonogram-hints.json")
-			.expect("Unable to read file");
-		serde_json::from_str(&data).expect("bad json")
+		// let data = fs::read_to_string(r"D:\Users\Guy\rust\Projects\black_and_solve\puzzles\nonogram-hints.json")
+		// 	.expect("Unable to read file");
+		// serde_json::from_str(&data).expect("bad json")
+
+		Board {
+			row: [
+				vec![6],
+				vec![14],
+				vec![18],
+				vec![22],
+				vec![16, 10],
+				vec![17, 11],
+				vec![32],
+				vec![32],
+				vec![33],
+				vec![34],
+				vec![35],
+				vec![15, 9],
+				vec![12, 7],
+				vec![11, 5],
+				vec![10, 5],
+				vec![9, 4],
+				vec![10, 3, 4],
+				vec![20, 3],
+				vec![21, 9, 4],
+				vec![21, 6, 1, 4],
+				vec![16, 3, 1, 4, 5],
+				vec![15, 2, 2, 6],
+				vec![13, 2, 8],
+				vec![10, 10],
+				vec![11, 9],
+				vec![14, 8],
+				vec![14, 2, 9],
+				vec![15, 7, 8],
+				vec![16, 3, 8],
+				vec![16, 2, 8],
+				vec![15, 3, 9],
+				vec![15, 4, 9],
+				vec![25, 9],
+				vec![28, 9],
+				vec![17, 3, 8, 4],
+				vec![23, 8],
+				vec![25, 8, 1],
+				vec![18, 10, 2],
+				vec![16, 12],
+				vec![17, 1, 11],
+				vec![19, 16],
+				vec![41],
+				vec![38],
+				vec![39],
+				vec![1, 32, 1],
+				vec![30],
+				vec![30],
+				vec![30, 3],
+				vec![30, 7],
+				vec![18, 9],
+			],
+			column: [
+				vec![],
+				vec![1],
+				vec![9],
+				vec![13],
+				vec![4, 1, 15, 2],
+				vec![32],
+				vec![34],
+				vec![34],
+				vec![36],
+				vec![39],
+				vec![44],
+				vec![45],
+				vec![46],
+				vec![46],
+				vec![11, 6, 25],
+				vec![11, 6, 24],
+				vec![10, 7, 23],
+				vec![9, 7, 2, 18],
+				vec![10, 6, 18],
+				vec![10, 4, 18],
+				vec![11, 4, 3, 15],
+				vec![10, 3, 7, 10],
+				vec![10, 4, 2, 7, 10],
+				vec![10, 6, 11, 9],
+				vec![11, 5, 5, 2, 2, 9],
+				vec![11, 1, 2, 2, 9],
+				vec![11, 1, 2, 1, 9],
+				vec![11, 1, 1, 1, 9],
+				vec![4, 5, 2, 1, 1, 8],
+				vec![11, 3, 1, 8],
+				vec![10, 2, 9],
+				vec![10, 3, 10],
+				vec![10, 3, 11],
+				vec![11, 3, 10],
+				vec![10, 1, 2, 13],
+				vec![11, 2, 1, 15],
+				vec![10, 1, 16],
+				vec![11, 20],
+				vec![46],
+				vec![44],
+				vec![39],
+				vec![8, 26],
+				vec![25, 2],
+				vec![14, 5, 1, 2],
+				vec![12, 4, 2],
+				vec![13, 2, 2, 1],
+				vec![2, 1, 1, 2, 1, 1],
+				vec![1, 1, 1],
+				vec![1, 1],
+				vec![],
+			],
+		}
 	}
 }
