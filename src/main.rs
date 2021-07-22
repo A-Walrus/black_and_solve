@@ -110,7 +110,7 @@ fn done(lines: &Vec<Line>) -> bool {
 	true
 }
 
-fn min_size(header: &Header) -> usize {
+fn min_size(header: &[usize]) -> usize {
 	if header.len() > 0 {
 		let mut sum = 0;
 		for val in header.iter() {
@@ -124,15 +124,14 @@ fn min_size(header: &Header) -> usize {
 
 fn find_options(header: &Header) -> Options {
 	let mut res = Vec::<Line>::new();
-	rec_find_options(header, [Tile::White; SIZE], 0, &mut res);
+	rec_find_options(&header[..], [Tile::White; SIZE], 0, &mut res);
 	res
 }
 
-fn rec_find_options(header: &Header, line: Line, filled: usize, result: &mut Options) {
+fn rec_find_options(header: &[usize], line: Line, filled: usize, result: &mut Options) {
 	if header.len() > 0 {
-		let mut remaining = header.to_vec();
-		remaining.remove(0);
-		for i in filled..SIZE - min_size(&remaining) - header[0] + 1 {
+		let remaining = &header[1..];
+		for i in filled..SIZE - min_size(remaining) - header[0] + 1 {
 			let mut copy = line;
 			for j in i..i + header[0] {
 				copy[j] = Tile::Black;
