@@ -1,14 +1,22 @@
+#![feature(test)]
+
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::{fmt, fs, ops, time::SystemTime};
 
 fn main() {
-	let b = Board::default();
 	let start = SystemTime::now();
-	for _ in 0..10 {
-		b.solve();
-	}
+	let board = Board::default();
+	board.solve();
 	println!("{:?}", start.elapsed());
+}
+
+extern crate test;
+
+#[bench]
+fn bench(b: &mut test::Bencher) {
+	let board = Board::default();
+	b.iter(|| board.solve());
 }
 
 const SIZE: usize = 50;
