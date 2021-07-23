@@ -8,12 +8,9 @@ use std::{sync::mpsc, thread};
 fn main() {
 	let b = Board::default();
 	let start = SystemTime::now();
-	for _ in 0..10 {
-		b.solve();
-	}
+	b.solve();
 	println!("{:?}", start.elapsed());
 }
-
 
 const SIZE: usize = 50;
 
@@ -65,14 +62,14 @@ struct Board {
 	column: SideHeader,
 }
 
-fn direction_solve(header: &SideHeader, tx: mpsc::Sender<Vec<Line>>, rx: mpsc::Receiver<Vec<Line>>) {
-	let mut options: Vec<Options> = header.iter().map(find_options).collect();
+fn direction_solve(header: &SideHeader, tx: mpsc::Sender<[Line; SIZE]>, rx: mpsc::Receiver<[Line; SIZE]>) {
+	let mut options: [Options; SIZE] = header.each_ref().map(find_options);
 	loop {
-		tx.send(options.iter().map(|x| summarize(&x)).collect()).unwrap_or(());
+		tx.send(options.each_ref().map(summarize)).unwrap_or(());
 		let summary = rx.recv().unwrap();
 		filter(&summary, &mut options);
 		if done(&summary) {
-			tx.send(options.iter().map(|x| summarize(&x)).collect()).unwrap_or(());
+			tx.send(options.each_ref().map(summarize)).unwrap_or(());
 			break;
 		}
 	}
@@ -91,11 +88,10 @@ impl Board {
 			direction_solve(&column, tx2, rx1);
 		});
 		direction_solve(&self.row, tx1, rx2);
-
 	}
 }
 
-fn filter(from: &Vec<Line>, to: &mut Vec<Options>) {
+fn filter(from: &[Line; SIZE], to: &mut [Options; SIZE]) {
 	for (l, line) in from.iter().enumerate() {
 		for (t, tile) in line.iter().enumerate() {
 			match tile {
@@ -108,7 +104,7 @@ fn filter(from: &Vec<Line>, to: &mut Vec<Options>) {
 	}
 }
 
-fn done(lines: &Vec<Line>) -> bool {
+fn done(lines: &[Line; SIZE]) -> bool {
 	for line in lines.iter() {
 		for square in line.iter() {
 			match square {
@@ -275,6 +271,5 @@ impl Default for Board {
 				vec![],
 			],
 		}
-		
 	}
 }
