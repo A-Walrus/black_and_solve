@@ -3,7 +3,10 @@
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::{fmt, fs, ops, time::SystemTime};
-use std::{sync::mpsc, thread};
+use std::{
+	sync::{mpsc, Arc, Mutex},
+	thread,
+};
 
 fn main() {
 	let b = Board::default();
@@ -62,14 +65,14 @@ struct Board {
 	column: SideHeader,
 }
 
-fn direction_solve(header: &SideHeader, tx: mpsc::Sender<[Line; SIZE]>, rx: mpsc::Receiver<[Line; SIZE]>) {
+fn direction_solve(header: &SideHeader, transmit: Arc<Mutex<[Line; SIZE]>>, recieve: Arc<Mutex<[Line; SIZE]>>) {
 	let mut options: [Options; SIZE] = header.each_ref().map(find_options);
 	loop {
-		tx.send(options.each_ref().map(summarize)).unwrap_or(());
-		let summary = rx.recv().unwrap();
+		*transmit.lock().unwrap() = options.each_ref().map(summarize);
+		let summary = *recieve.lock().unwrap();
 		filter(&summary, &mut options);
 		if done(&summary) {
-			tx.send(options.each_ref().map(summarize)).unwrap_or(());
+			*transmit.lock().unwrap() = options.each_ref().map(summarize);
 			break;
 		}
 	}
@@ -81,13 +84,15 @@ fn clone(head: &SideHeader) -> SideHeader {
 
 impl Board {
 	fn solve(&self) {
-		let (tx1, rx1) = mpsc::channel();
-		let (tx2, rx2) = mpsc::channel();
+		let row_summary = Arc::new(Mutex::new([[Tile::Unknown; SIZE]; SIZE]));
+		let col_summary = Arc::new(Mutex::new([[Tile::Unknown; SIZE]; SIZE]));
+		let row_summary_c = row_summary.clone();
+		let col_summary_c = col_summary.clone();
 		let column = clone(&self.column);
 		thread::spawn(move || {
-			direction_solve(&column, tx2, rx1);
+			direction_solve(&column, col_summary_c, row_summary_c);
 		});
-		direction_solve(&self.row, tx1, rx2);
+		direction_solve(&self.row, row_summary, col_summary);
 	}
 }
 
