@@ -1,5 +1,4 @@
-#![feature(array_methods)]
-
+#![feature(array_methods, test)]
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::{fmt, fs, ops, time::SystemTime};
@@ -13,6 +12,14 @@ fn main() {
 	let start = SystemTime::now();
 	b.solve();
 	println!("{:?}", start.elapsed());
+}
+
+extern crate test;
+
+#[bench]
+fn bench(b: &mut test::Bencher) {
+	let board = Board::default();
+	b.iter(|| board.solve());
 }
 
 const SIZE: usize = 50;
